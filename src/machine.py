@@ -24,13 +24,13 @@ class DataPath:
     acc = None
     c = None
     v = None
+    ar = None
     mem_size = None
     memory = None
     input_buffer = None
     output_buffer_int = None
     output_buffer_hex = None
     output_buffer_str = None
-    address_register = None
     input_cell = None
     output_cell = None
 
@@ -46,14 +46,120 @@ class DataPath:
         self.output_buffer_int = []
         self.output_buffer_hex = []
         self.output_buffer_str = []
-        self.address_register = 0
+        self.ar = 0
 
-    def save_mem_to_acc(self):
-        self.acc = self.memory[self.address_register]
+    def signal_latch_acc(self, sel):
+        if sel['opcode'] == Opcode.NO_ARG:
+            if sel['type'] == NoArgType.CLA:
+                self.acc = 0
 
-    def save_acc_to_mem(self):
-        self.memory[self.address_register] = self.acc
-        if self.address_register == self.output_cell:
+            if sel['type'] == NoArgType.CLC:
+                self.c = 0
+
+            if sel['type'] == NoArgType.CLV:
+                self.v = 0
+
+            if sel['type'] == NoArgType.SETC:
+                self.c = 1
+
+            if sel['type'] == NoArgType.SETV:
+                self.v = 1
+
+            if sel['type'] == NoArgType.NOT:
+                self.acc = ~self.acc
+
+            if sel['type'] == NoArgType.SHL:
+                self.acc = self.acc << 1
+
+            if sel['type'] == NoArgType.SHR:
+                self.acc = self.acc >> 1
+
+            if sel['type'] == NoArgType.ASR:
+                if self.acc & 0x80000000 == 0:
+                    self.acc = self.acc >> 1
+                else:
+                    self.acc = (self.acc >> 1) | 0x80000000
+
+            if sel['type'] == NoArgType.CSHL:
+                acc = self.acc
+                buf = self.c
+                new_c = (acc >> 31) & 1
+                self.c = new_c
+                self.acc = (acc << 1) | buf
+
+            if sel['type'] == NoArgType.CSHR:
+                acc = self.acc
+                buf = self.c
+                new_c = acc & 1
+                self.c = new_c
+                self.acc = (acc >> 1) | (buf << 31)
+
+        elif sel['opcode'] == Opcode.AND:
+            self.acc = self.acc & sel['arg']
+
+        elif sel['opcode'] == Opcode.OR:
+            self.acc = self.acc | sel['arg']
+
+        elif sel['opcode'] == Opcode.ADD:
+            acc = self.acc
+            self.acc = acc + sel['arg']
+
+            if (acc >> 31 == 0 and sel['arg'] >> 31 == 0 and self.acc >> 31 == 1) \
+                    or (acc >> 31 == 1 and sel['arg'] >> 31 == 1 and self.acc >> 31 == 0):
+                self.v = 1
+            else:
+                self.v = 0
+
+            if acc + sel['arg'] > 0xFFFFFFFF:
+                self.c = 1
+            else:
+                self.c = 0
+
+        elif sel['opcode'] == Opcode.SUB:
+            acc = self.acc
+            self.acc = acc - sel['arg']
+
+            if (acc >> 31 == 0 and sel['arg'] >> 31 == 1 and self.acc >> 31 == 1) \
+                    or (acc >> 31 == 1 and sel['arg'] >> 31 == 0 and self.acc >> 31 == 0):
+                self.v = 1
+            else:
+                self.v = 0
+
+            if acc < sel['arg']:
+                self.c = 1
+            else:
+                self.c = 0
+
+        elif sel['opcode'] == Opcode.MUL:
+            acc = self.acc
+            self.acc = acc * sel['arg']
+
+            if (acc * sel['arg'] > 2 ** 31 - 1) or (acc * sel['arg'] < -2 ** 31):
+                self.v = 1
+            else:
+                self.v = 0
+
+            if abs(acc * sel['arg']) > 0xFFFFFFFF:
+                self.c = 1
+            else:
+                self.c = 0
+
+        elif sel['opcode'] == Opcode.DIV:
+            self.acc = self.acc // sel['arg']
+
+        elif sel['opcode'] == Opcode.MOD:
+            self.acc = self.acc % sel['arg']
+
+        elif sel['opcode'] == Opcode.LOAD:
+            self.acc = sel['arg']
+
+        elif sel['opcode'] == Opcode.SAVE:
+            self.signal_latch_addr({'addr_type': AddrType.IMM, 'arg': sel['arg']})
+            self.signal_wr()
+
+    def signal_wr(self):
+        self.memory[self.ar] = self.acc
+        if self.ar == self.output_cell:
             self.output_buffer_int.append(hex_to_signed_int(hex(self.acc)))
             self.output_buffer_hex.append(hex(self.acc))
             if self.acc & 0xFFFFFF00 == 0:
@@ -63,31 +169,13 @@ class DataPath:
             logging.debug(
                 f"output:\tint: {self.output_buffer_int[-1]}\thex: {self.output_buffer_hex[-1]}\tstr: '{self.output_buffer_str[-1]}'")
 
-    def set_acc(self, new_acc):
-        self.acc = new_acc & 0xFFFFFFFF
+    def signal_latch_addr(self, sel):
+        if sel['addr_type'] == AddrType.INDR:
+            self.ar = self.memory[sel['arg']] & 0xFFFFFF
+        else:
+            self.ar = sel['arg']
 
-    def get_acc(self):
-        return self.acc
-
-    def set_address_register(self, addr):
-        self.address_register = addr
-
-    def set_v(self, new_v):
-        self.v = new_v
-
-    def get_v(self):
-        return self.v
-
-    def set_c(self, new_c):
-        self.c = new_c
-
-    def get_c(self):
-        return self.c
-
-    def read_from_mem(self):
-        return self.memory[self.address_register]
-
-    def update_value_in_input_cell(self):
+    def signal_in(self):
         logging.debug(f" input: '{self.input_buffer[0][1]}'")
         self.memory[self.input_cell] = int.from_bytes(self.input_buffer[0][1].encode(), byteorder="big")
         self.input_buffer = self.input_buffer[1:]
@@ -111,7 +199,7 @@ class ControlUnit:
     interruption_allowed = None
     current_instruction = None
 
-    def __init__(self, pc, data_path):
+    def __init__(self, pc, data_path: DataPath):
         self.state = State.RUNNING
         self.step = Step.COMMAND_FETCH
         self.pc = pc
@@ -126,8 +214,8 @@ class ControlUnit:
         self.current_instruction = instruction_to_str(opcode, command_type, arg)
         if opcode != Opcode.BRANCH and opcode != Opcode.NO_ARG and command_type != AddrType.IMM:
             if command_type != AddrType.DIR:
-                arg = self.address_fetch(command_type, arg)
-            arg = self.operand_fetch(arg)
+                self.address_fetch(command_type, arg)
+            arg = self.operand_fetch()
         self.execution(opcode, command_type, arg)
         if self.interrupt_ready and self.state != State.INTERRUPTION and self.interruption_allowed:
             self.interruption()
@@ -135,182 +223,101 @@ class ControlUnit:
     def command_fetch(self):
         self.step = Step.COMMAND_FETCH
         self.tick_inc()
-        self.data_path.set_address_register(self.pc)
-        self.set_pc(self.get_pc() + 1)
-        return instruction_from_bin(self.data_path.read_from_mem())
+        opcode, command_type, arg = instruction_from_bin(self.data_path.memory[self.pc])
+        self.signal_latch_pc({'next': True})
+        if command_type == AddrType.DIR or command_type == AddrType.INDR:
+            self.data_path.signal_latch_addr({'addr_type': command_type, 'arg': arg})
+        return opcode, command_type, arg
 
     def address_fetch(self, addr_type, arg):
         self.step = Step.ADDRESS_FETCH
         self.tick_inc()
-        if addr_type == AddrType.INDR:
-            self.data_path.set_address_register(arg)
-            return self.data_path.read_from_mem()
+        self.data_path.signal_latch_addr(sel={'addr_type': addr_type, 'arg': arg})
 
-        elif addr_type == AddrType.REL:
-            return self.get_pc() + arg
-
-    def operand_fetch(self, arg):
+    def operand_fetch(self):
         self.step = Step.OPERAND_FETCH
         self.tick_inc()
-        self.data_path.set_address_register(arg)
-        return self.data_path.read_from_mem()
+        return self.data_path.memory[self.data_path.ar]
 
     def execution(self, opcode, command_type, arg):
         self.step = Step.EXECUTION
         self.tick_inc()
-        if opcode == Opcode.NO_ARG:
-            if command_type == NoArgType.HALT:
-                self.state = State.STOP
+        if command_type == NoArgType.HALT:
+            self.state = State.STOP
 
-            if command_type == NoArgType.CLA:
-                self.data_path.set_acc(0)
+        elif command_type == NoArgType.IRET:
+            self.state = State.RUNNING
+            self.signal_latch_pc({'next': False, 'arg': self.return_addr})
 
-            if command_type == NoArgType.CLC:
-                self.data_path.set_c(0)
+        elif command_type == NoArgType.EI:
+            self.interruption_allowed = True
 
-            if command_type == NoArgType.CLV:
-                self.data_path.set_v(0)
-
-            if command_type == NoArgType.SETC:
-                self.data_path.set_c(1)
-
-            if command_type == NoArgType.SETV:
-                self.data_path.set_v(1)
-
-            if command_type == NoArgType.NOT:
-                self.data_path.set_acc(~self.data_path.get_acc())
-
-            if command_type == NoArgType.SHL:
-                self.data_path.set_acc(self.data_path.get_acc() << 1)
-
-            if command_type == NoArgType.SHR:
-                self.data_path.set_acc(self.data_path.get_acc() >> 1)
-
-            if command_type == NoArgType.ASR:
-                self.data_path.set_acc(
-                    self.data_path.get_acc() / self.data_path.get_acc * (self.data_path.get_acc() >> 1))
-
-            if command_type == NoArgType.CSHL:
-                acc = self.data_path.get_acc()
-                buf = self.data_path.get_c()
-                new_c = (acc >> 31) & 1
-                self.data_path.set_c(new_c)
-                self.data_path.set_acc((acc << 1) | buf)
-
-            if command_type == NoArgType.CSHR:
-                acc = self.data_path.get_acc()
-                buf = self.data_path.get_c()
-                new_c = acc & 1
-                self.data_path.set_c(new_c)
-                self.data_path.set_acc((acc >> 1) | (buf << 31))
-
-            if command_type == NoArgType.IRET:
-                self.state = State.RUNNING
-                self.pc = self.return_addr
-
-            if command_type == NoArgType.EI:
-                self.interruption_allowed = True
-
-            if command_type == NoArgType.DI:
-                self.interruption_allowed = False
+        elif command_type == NoArgType.DI:
+            self.interruption_allowed = False
 
         elif opcode == Opcode.BRANCH:
             if command_type == BranchType.JUMP:
-                self.set_pc(arg)
+                self.signal_latch_pc({'next': False, 'arg': arg})
 
             if command_type == BranchType.BEQZ:
-                if self.data_path.get_acc() == 0:
-                    self.set_pc(arg)
+                if self.data_path.acc == 0:
+                    self.signal_latch_pc({'next': False, 'arg': arg})
 
             if command_type == BranchType.BNEQZ:
-                if self.data_path.get_acc() != 0:
-                    self.set_pc(arg)
+                if self.data_path.acc != 0:
+                    self.signal_latch_pc({'next': False, 'arg': arg})
 
             if command_type == BranchType.BLE:
-                if self.data_path.get_acc() & 0x80000000 != 0:
-                    self.set_pc(arg)
+                if self.data_path.acc & 0x80000000 != 0:
+                    self.signal_latch_pc({'next': False, 'arg': arg})
 
             if command_type == BranchType.BGT:
-                if self.data_path.get_acc() & 0x80000000 == 0:
-                    self.set_pc(arg)
+                if self.data_path.acc & 0x80000000 == 0:
+                    self.signal_latch_pc({'next': False, 'arg': arg})
 
             if command_type == BranchType.BCS:
-                if self.data_path.get_c() == 1:
-                    self.set_pc(arg)
+                if self.data_path.c == 1:
+                    self.signal_latch_pc({'next': False, 'arg': arg})
 
             if command_type == BranchType.BCNS:
-                if self.data_path.get_c() == 0:
-                    self.set_pc(arg)
+                if self.data_path.c == 0:
+                    self.signal_latch_pc({'next': False, 'arg': arg})
 
             if command_type == BranchType.BVS:
-                if self.data_path.get_v() == 1:
-                    self.set_pc(arg)
+                if self.data_path.v == 1:
+                    self.signal_latch_pc({'next': False, 'arg': arg})
 
             if command_type == BranchType.BVNS:
-                if self.data_path.get_v() == 0:
-                    self.set_pc(arg)
-
-        elif opcode == Opcode.AND:
-            self.data_path.set_acc(self.data_path.get_acc() & arg)
-
-        elif opcode == Opcode.OR:
-            self.data_path.set_acc(self.data_path.get_acc() | arg)
-
-        elif opcode == Opcode.ADD:
-            acc = self.data_path.get_acc()
-            self.data_path.set_acc(acc + arg)
-            self.data_path.set_v(1) if (acc >> 31 == 0 and arg >> 31 == 0 and self.data_path.get_acc() >> 31 == 1) or (acc >> 31 == 1 and arg >> 31 == 1 and self.data_path.get_acc() >> 31 == 0) else self.data_path.set_v(0)
-            self.data_path.set_c(1) if acc + arg > 0xFFFFFFFF else self.data_path.set_c(0)
-
-        elif opcode == Opcode.SUB:
-            acc = self.data_path.get_acc()
-            self.data_path.set_acc(acc - arg)
-            self.data_path.set_v(1) if (acc >> 31 == 0 and arg >> 31 == 1 and self.data_path.get_acc() >> 31 == 1) or (acc >> 31 == 1 and arg >> 31 == 0 and self.data_path.get_acc() >> 31 == 0) else self.data_path.set_v(0)
-            self.data_path.set_c(1) if acc < arg else self.data_path.set_c(0)
-
-        elif opcode == Opcode.MUL:
-            acc = self.data_path.get_acc()
-            self.data_path.set_acc(acc * arg)
-            self.data_path.set_v(1) if (acc * arg > 2**31 -1) or (acc * arg < -2**31) else self.data_path.set_v(0)
-            self.data_path.set_c(1) if abs(acc * arg) > 0xFFFFFFFF else self.data_path.set_c(0)
-
-        elif opcode == Opcode.DIV:
-            self.data_path.set_acc(self.data_path.get_acc() // arg)
-
-        elif opcode == Opcode.MOD:
-            self.data_path.set_acc(self.data_path.get_acc() % arg)
-
-        elif opcode == Opcode.LOAD:
-            self.data_path.set_acc(arg)
-
-        elif opcode == Opcode.SAVE:
-            self.data_path.set_address_register(arg)
-            self.data_path.save_acc_to_mem()
+                if self.data_path.v == 0:
+                    self.signal_latch_pc({'next': False, 'arg': arg})
 
         elif opcode == Opcode.SETVEC:
             self.interruption_vector = arg
+
+        else:
+            self.data_path.signal_latch_acc(sel={'opcode': opcode, 'type': command_type, 'arg': arg})
 
     def interruption(self):
         self.step = Step.INTERRUPTION
         self.tick_inc()
         self.state = State.INTERRUPTION
         self.return_addr = self.pc
-        self.pc = self.interruption_vector
+        self.signal_latch_pc({'next': False, 'arg': self.interruption_vector})
         self.interrupt_ready = False
         return
 
-    def set_pc(self, new_pc):
-        self.pc = new_pc
-
-    def get_pc(self):
-        return self.pc
+    def signal_latch_pc(self, sel):
+        if sel['next']:
+            self.pc += 1
+        else:
+            self.pc = sel['arg']
 
     def tick_inc(self):
         logging.log(logging.DEBUG,
-                    f"STATE: {self.state.name:12} STEP: {self.step.name:13} TICK: {self.tick:3} PC: {self.pc:4} ADDR: {self.data_path.address_register:3} MEM[ADDR]: {self.data_path.read_from_mem():10} ACC: {self.data_path.get_acc():10} C: {self.data_path.get_c()} V: {self.data_path.get_v()}\tINSTR: {self.current_instruction}")
+                    f"STATE: {self.state.name:12} STEP: {self.step.name:13} TICK: {self.tick:3} PC: {self.pc:4} ADDR: {self.data_path.ar:3} MEM[ADDR]: {self.data_path.memory[self.data_path.ar]:10} ACC: {self.data_path.acc:10} C: {self.data_path.c} V: {self.data_path.v}\tINSTR: {self.current_instruction}")
         self.tick += 1
         if self.tick == self.data_path.get_nearest_input_moment():
-            self.data_path.update_value_in_input_cell()
+            self.data_path.signal_in()
             self.interrupt_ready = True
 
 

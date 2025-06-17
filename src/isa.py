@@ -69,7 +69,6 @@ bin_to_addr_type = {
     0x0: AddrType.IMM,
     0x1: AddrType.DIR,
     0x2: AddrType.INDR,
-    0x3: AddrType.REL
 }
 
 opcode_to_bin = {
@@ -189,13 +188,6 @@ def to_binary(code):
                 else:
                     operand = int(operand[2:len(operand) - 1])
 
-            elif re.fullmatch(r"(-?\d|0x[\da-f]{1,6})\(pc\)", operand, flags=re.IGNORECASE):
-                addressing_type = 0b0011
-                if operand.startswith("0x"):
-                    operand = int(operand[2:len(operand) - 4], 16)
-                else:
-                    operand = int(operand[:len(operand) - 4])
-
             else:
                 addressing_type = 0b0000
                 if operand.startswith("0x"):
@@ -244,7 +236,7 @@ def to_hex(code):
     for i in range(4, len(binary_code), 4):
         instruction = int.from_bytes(binary_code[i:i + 4], byteorder='big') & 0xFFFFFFFF
         opcode, command_type, arg = instruction_from_bin(instruction)
-        result += f"{mem_addr} - {hex(instruction)} - {instruction_to_str(opcode,command_type,arg)}\n"
+        result += f"{mem_addr} - {hex(instruction)} - {instruction_to_str(opcode, command_type, arg)}\n"
         mem_addr += 1
     return result
 

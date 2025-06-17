@@ -81,8 +81,10 @@ def code_inspection(lines):
                     error_counter += 1
                     report += f"Error: Missing operand for instruction in line {line_index}: {line}\n\n"
                     continue
-                if re.fullmatch(r"-?[1-9]\d*", args[0].replace("(pc)", "").replace("]", "").replace("[", "").replace("*", "")) \
-                        and not (-2 ** 23 <= int(args[0].replace("(pc)", "").replace("]", "").replace("[", "").replace("*", "")) <= 2 ** 23 - 1):
+                if re.fullmatch(r"-?[1-9]\d*",
+                                args[0].replace("(pc)", "").replace("]", "").replace("[", "").replace("*", "")) \
+                        and not (-2 ** 23 <= int(
+                    args[0].replace("(pc)", "").replace("]", "").replace("[", "").replace("*", "")) <= 2 ** 23 - 1):
                     error_counter += 1
                     report += f"Error: Operand value for instruction \"{command}\" out of bounds in line {line_index}: {line}\n"
                     report += f"Note: Operand value for instructions supposed to be between -8388608 and 8388607\n\n"

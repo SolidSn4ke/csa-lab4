@@ -1,6 +1,7 @@
-venv/Lib
+venv
 .pytest_cache
 .idea
+*/__pycache__/*
 code.bin
 code.hex
 data.bin

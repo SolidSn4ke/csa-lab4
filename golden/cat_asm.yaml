@@ -1,0 +1,464 @@
+in_source: |-
+  .data
+  v1:       .word   int_handler
+  in_addr:  .word   0x80
+  out_addr: .word   0x84
+  counter:  .word   20
+  buf:      .word   0
+
+  macro update_counter
+      load    [counter]
+      beqz    stop
+      sub     1
+      save    counter
+      jump    cycle
+  endm
+
+  .code
+  _start:
+      setvec  [v1]
+      ei
+  cycle:
+      update_counter
+
+  stop:
+      halt
+
+  int_handler:
+      save    buf
+      load    *[in_addr]
+      save    [out_addr]
+      load    [buf]
+      iret
+
+in_config: |-
+  machine:
+    tick_limit: 10000
+    memory_mapped_io:
+      in_addr: 0x80
+      out_addr: 0x84
+    output_type: str
+
+in_stdin: |-
+  10 S
+  30 o
+  50 m
+  70 e
+  90
+  110 D
+  130 a
+  150 t
+  170 a
+
+out_code: !!binary |
+  QUFBQUJhRUFBQUFOQUFBQWdRQUFBL0VBQUF4QUFBQUJrQUFBQS9BQUFBY0FBQUFBa0FBQUJJSUFB
+  QUdSQUFBQ2dRQUFCQXdBQUFBPQ==
+
+out_data: !!binary |
+  QUFBQUFBQUFBQTBBQUFDQUFBQUFoQUFBQUJRQUFBQUE=
+
+out_code_hex: |-
+  5 - 0xa1000000 - setvec [0]
+  6 - 0xd000000 - ei
+  7 - 0x81000003 - load [3]
+  8 - 0xf100000c - beqz 12
+  9 - 0x40000001 - sub 1
+  10 - 0x90000003 - save 3
+  11 - 0xf0000007 - jump 7
+  12 - 0x0 - halt
+  13 - 0x90000004 - save 4
+  14 - 0x82000001 - load *[1]
+  15 - 0x91000002 - save [2]
+  16 - 0x81000004 - load [4]
+  17 - 0xc000000 - iret
+
+out_stdout: |
+  Some Data
+  ticks: 367
+
+out_log: |
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:   0 PC:    5 ADDR:   0 MEM[ADDR]:         13 ACC:          0 C: 0 V: 0	INSTR: None
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:   1 PC:    6 ADDR:   5 MEM[ADDR]: 2701131776 ACC:          0 C: 0 V: 0	INSTR: setvec [0]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:   2 PC:    6 ADDR:   0 MEM[ADDR]:         13 ACC:          0 C: 0 V: 0	INSTR: setvec [0]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:   3 PC:    6 ADDR:   0 MEM[ADDR]:         13 ACC:          0 C: 0 V: 0	INSTR: setvec [0]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:   4 PC:    7 ADDR:   6 MEM[ADDR]:  218103808 ACC:          0 C: 0 V: 0	INSTR: ei
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:   5 PC:    7 ADDR:   6 MEM[ADDR]:  218103808 ACC:          0 C: 0 V: 0	INSTR: ei
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:   6 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:          0 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:   7 PC:    8 ADDR:   3 MEM[ADDR]:         20 ACC:          0 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:   8 PC:    8 ADDR:   3 MEM[ADDR]:         20 ACC:         20 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:   9 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         20 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:91  input: 'S'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: INTERRUPTION  TICK:  10 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         20 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  11 PC:   13 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         20 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  12 PC:   14 ADDR:  13 MEM[ADDR]: 2415919108 ACC:         20 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  13 PC:   14 ADDR:   4 MEM[ADDR]:         20 ACC:         20 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: ADDRESS_FETCH TICK:  14 PC:   15 ADDR:  14 MEM[ADDR]: 2181038081 ACC:         20 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  15 PC:   15 ADDR:   1 MEM[ADDR]:        128 ACC:         20 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  16 PC:   15 ADDR: 128 MEM[ADDR]:         83 ACC:         20 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  17 PC:   15 ADDR: 128 MEM[ADDR]:         83 ACC:         83 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  18 PC:   16 ADDR:  15 MEM[ADDR]: 2432696322 ACC:         83 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  19 PC:   16 ADDR:   2 MEM[ADDR]:        132 ACC:         83 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:63 output:	int: 83	hex: 0x53	str: 'S'
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  20 PC:   16 ADDR: 132 MEM[ADDR]:         83 ACC:         83 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  21 PC:   17 ADDR:  16 MEM[ADDR]: 2164260868 ACC:         83 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  22 PC:   17 ADDR:   4 MEM[ADDR]:         20 ACC:         83 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  23 PC:   17 ADDR:   4 MEM[ADDR]:         20 ACC:         20 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  24 PC:   18 ADDR:  17 MEM[ADDR]:  201326592 ACC:         20 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  25 PC:    9 ADDR:  17 MEM[ADDR]:  201326592 ACC:         20 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  26 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         20 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  27 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         19 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  28 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:         19 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  29 PC:   11 ADDR:   3 MEM[ADDR]:         19 ACC:         19 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:91  input: 'o'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  30 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         19 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: INTERRUPTION  TICK:  31 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         19 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  32 PC:   13 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         19 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  33 PC:   14 ADDR:  13 MEM[ADDR]: 2415919108 ACC:         19 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  34 PC:   14 ADDR:   4 MEM[ADDR]:         19 ACC:         19 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: ADDRESS_FETCH TICK:  35 PC:   15 ADDR:  14 MEM[ADDR]: 2181038081 ACC:         19 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  36 PC:   15 ADDR:   1 MEM[ADDR]:        128 ACC:         19 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  37 PC:   15 ADDR: 128 MEM[ADDR]:        111 ACC:         19 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  38 PC:   15 ADDR: 128 MEM[ADDR]:        111 ACC:        111 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  39 PC:   16 ADDR:  15 MEM[ADDR]: 2432696322 ACC:        111 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  40 PC:   16 ADDR:   2 MEM[ADDR]:        132 ACC:        111 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:63 output:	int: 111	hex: 0x6f	str: 'o'
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  41 PC:   16 ADDR: 132 MEM[ADDR]:        111 ACC:        111 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  42 PC:   17 ADDR:  16 MEM[ADDR]: 2164260868 ACC:        111 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  43 PC:   17 ADDR:   4 MEM[ADDR]:         19 ACC:        111 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  44 PC:   17 ADDR:   4 MEM[ADDR]:         19 ACC:         19 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  45 PC:   18 ADDR:  17 MEM[ADDR]:  201326592 ACC:         19 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  46 PC:    7 ADDR:  17 MEM[ADDR]:  201326592 ACC:         19 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  47 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:         19 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  48 PC:    8 ADDR:   3 MEM[ADDR]:         19 ACC:         19 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  49 PC:    8 ADDR:   3 MEM[ADDR]:         19 ACC:         19 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:91  input: 'm'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  50 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         19 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: INTERRUPTION  TICK:  51 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         19 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  52 PC:   13 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         19 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  53 PC:   14 ADDR:  13 MEM[ADDR]: 2415919108 ACC:         19 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  54 PC:   14 ADDR:   4 MEM[ADDR]:         19 ACC:         19 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: ADDRESS_FETCH TICK:  55 PC:   15 ADDR:  14 MEM[ADDR]: 2181038081 ACC:         19 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  56 PC:   15 ADDR:   1 MEM[ADDR]:        128 ACC:         19 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  57 PC:   15 ADDR: 128 MEM[ADDR]:        109 ACC:         19 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  58 PC:   15 ADDR: 128 MEM[ADDR]:        109 ACC:        109 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  59 PC:   16 ADDR:  15 MEM[ADDR]: 2432696322 ACC:        109 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  60 PC:   16 ADDR:   2 MEM[ADDR]:        132 ACC:        109 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:63 output:	int: 109	hex: 0x6d	str: 'm'
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  61 PC:   16 ADDR: 132 MEM[ADDR]:        109 ACC:        109 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  62 PC:   17 ADDR:  16 MEM[ADDR]: 2164260868 ACC:        109 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  63 PC:   17 ADDR:   4 MEM[ADDR]:         19 ACC:        109 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  64 PC:   17 ADDR:   4 MEM[ADDR]:         19 ACC:         19 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  65 PC:   18 ADDR:  17 MEM[ADDR]:  201326592 ACC:         19 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  66 PC:    9 ADDR:  17 MEM[ADDR]:  201326592 ACC:         19 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  67 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         19 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  68 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         18 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  69 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:         18 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:91  input: 'e'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: INTERRUPTION  TICK:  70 PC:   11 ADDR:   3 MEM[ADDR]:         18 ACC:         18 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  71 PC:   13 ADDR:   3 MEM[ADDR]:         18 ACC:         18 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  72 PC:   14 ADDR:  13 MEM[ADDR]: 2415919108 ACC:         18 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  73 PC:   14 ADDR:   4 MEM[ADDR]:         18 ACC:         18 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: ADDRESS_FETCH TICK:  74 PC:   15 ADDR:  14 MEM[ADDR]: 2181038081 ACC:         18 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  75 PC:   15 ADDR:   1 MEM[ADDR]:        128 ACC:         18 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  76 PC:   15 ADDR: 128 MEM[ADDR]:        101 ACC:         18 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  77 PC:   15 ADDR: 128 MEM[ADDR]:        101 ACC:        101 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  78 PC:   16 ADDR:  15 MEM[ADDR]: 2432696322 ACC:        101 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  79 PC:   16 ADDR:   2 MEM[ADDR]:        132 ACC:        101 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:63 output:	int: 101	hex: 0x65	str: 'e'
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  80 PC:   16 ADDR: 132 MEM[ADDR]:        101 ACC:        101 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  81 PC:   17 ADDR:  16 MEM[ADDR]: 2164260868 ACC:        101 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  82 PC:   17 ADDR:   4 MEM[ADDR]:         18 ACC:        101 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  83 PC:   17 ADDR:   4 MEM[ADDR]:         18 ACC:         18 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  84 PC:   18 ADDR:  17 MEM[ADDR]:  201326592 ACC:         18 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  85 PC:   11 ADDR:  17 MEM[ADDR]:  201326592 ACC:         18 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  86 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         18 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  87 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         18 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  88 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:         18 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  89 PC:    8 ADDR:   3 MEM[ADDR]:         18 ACC:         18 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:91  input: ' '
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: INTERRUPTION  TICK:  90 PC:    8 ADDR:   3 MEM[ADDR]:         18 ACC:         18 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  91 PC:   13 ADDR:   3 MEM[ADDR]:         18 ACC:         18 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  92 PC:   14 ADDR:  13 MEM[ADDR]: 2415919108 ACC:         18 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  93 PC:   14 ADDR:   4 MEM[ADDR]:         18 ACC:         18 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: ADDRESS_FETCH TICK:  94 PC:   15 ADDR:  14 MEM[ADDR]: 2181038081 ACC:         18 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  95 PC:   15 ADDR:   1 MEM[ADDR]:        128 ACC:         18 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  96 PC:   15 ADDR: 128 MEM[ADDR]:         32 ACC:         18 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK:  97 PC:   15 ADDR: 128 MEM[ADDR]:         32 ACC:         32 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK:  98 PC:   16 ADDR:  15 MEM[ADDR]: 2432696322 ACC:         32 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK:  99 PC:   16 ADDR:   2 MEM[ADDR]:        132 ACC:         32 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:63 output:	int: 32	hex: 0x20	str: ' '
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 100 PC:   16 ADDR: 132 MEM[ADDR]:         32 ACC:         32 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 101 PC:   17 ADDR:  16 MEM[ADDR]: 2164260868 ACC:         32 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 102 PC:   17 ADDR:   4 MEM[ADDR]:         18 ACC:         32 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 103 PC:   17 ADDR:   4 MEM[ADDR]:         18 ACC:         18 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 104 PC:   18 ADDR:  17 MEM[ADDR]:  201326592 ACC:         18 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 105 PC:    8 ADDR:  17 MEM[ADDR]:  201326592 ACC:         18 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 106 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         18 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 107 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         18 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 108 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         18 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 109 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         17 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:91  input: 'D'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 110 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:         17 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: INTERRUPTION  TICK: 111 PC:   11 ADDR:   3 MEM[ADDR]:         17 ACC:         17 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 112 PC:   13 ADDR:   3 MEM[ADDR]:         17 ACC:         17 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 113 PC:   14 ADDR:  13 MEM[ADDR]: 2415919108 ACC:         17 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 114 PC:   14 ADDR:   4 MEM[ADDR]:         17 ACC:         17 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: ADDRESS_FETCH TICK: 115 PC:   15 ADDR:  14 MEM[ADDR]: 2181038081 ACC:         17 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 116 PC:   15 ADDR:   1 MEM[ADDR]:        128 ACC:         17 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 117 PC:   15 ADDR: 128 MEM[ADDR]:         68 ACC:         17 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 118 PC:   15 ADDR: 128 MEM[ADDR]:         68 ACC:         68 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 119 PC:   16 ADDR:  15 MEM[ADDR]: 2432696322 ACC:         68 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 120 PC:   16 ADDR:   2 MEM[ADDR]:        132 ACC:         68 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:63 output:	int: 68	hex: 0x44	str: 'D'
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 121 PC:   16 ADDR: 132 MEM[ADDR]:         68 ACC:         68 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 122 PC:   17 ADDR:  16 MEM[ADDR]: 2164260868 ACC:         68 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 123 PC:   17 ADDR:   4 MEM[ADDR]:         17 ACC:         68 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 124 PC:   17 ADDR:   4 MEM[ADDR]:         17 ACC:         17 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 125 PC:   18 ADDR:  17 MEM[ADDR]:  201326592 ACC:         17 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 126 PC:   11 ADDR:  17 MEM[ADDR]:  201326592 ACC:         17 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 127 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         17 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 128 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         17 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 129 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:         17 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:91  input: 'a'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 130 PC:    8 ADDR:   3 MEM[ADDR]:         17 ACC:         17 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: INTERRUPTION  TICK: 131 PC:    8 ADDR:   3 MEM[ADDR]:         17 ACC:         17 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 132 PC:   13 ADDR:   3 MEM[ADDR]:         17 ACC:         17 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 133 PC:   14 ADDR:  13 MEM[ADDR]: 2415919108 ACC:         17 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 134 PC:   14 ADDR:   4 MEM[ADDR]:         17 ACC:         17 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: ADDRESS_FETCH TICK: 135 PC:   15 ADDR:  14 MEM[ADDR]: 2181038081 ACC:         17 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 136 PC:   15 ADDR:   1 MEM[ADDR]:        128 ACC:         17 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 137 PC:   15 ADDR: 128 MEM[ADDR]:         97 ACC:         17 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 138 PC:   15 ADDR: 128 MEM[ADDR]:         97 ACC:         97 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 139 PC:   16 ADDR:  15 MEM[ADDR]: 2432696322 ACC:         97 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 140 PC:   16 ADDR:   2 MEM[ADDR]:        132 ACC:         97 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:63 output:	int: 97	hex: 0x61	str: 'a'
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 141 PC:   16 ADDR: 132 MEM[ADDR]:         97 ACC:         97 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 142 PC:   17 ADDR:  16 MEM[ADDR]: 2164260868 ACC:         97 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 143 PC:   17 ADDR:   4 MEM[ADDR]:         17 ACC:         97 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 144 PC:   17 ADDR:   4 MEM[ADDR]:         17 ACC:         17 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 145 PC:   18 ADDR:  17 MEM[ADDR]:  201326592 ACC:         17 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 146 PC:    8 ADDR:  17 MEM[ADDR]:  201326592 ACC:         17 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 147 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         17 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 148 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         17 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 149 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         17 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:91  input: 't'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: INTERRUPTION  TICK: 150 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         16 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 151 PC:   13 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         16 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 152 PC:   14 ADDR:  13 MEM[ADDR]: 2415919108 ACC:         16 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 153 PC:   14 ADDR:   4 MEM[ADDR]:         16 ACC:         16 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: ADDRESS_FETCH TICK: 154 PC:   15 ADDR:  14 MEM[ADDR]: 2181038081 ACC:         16 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 155 PC:   15 ADDR:   1 MEM[ADDR]:        128 ACC:         16 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 156 PC:   15 ADDR: 128 MEM[ADDR]:        116 ACC:         16 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 157 PC:   15 ADDR: 128 MEM[ADDR]:        116 ACC:        116 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 158 PC:   16 ADDR:  15 MEM[ADDR]: 2432696322 ACC:        116 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 159 PC:   16 ADDR:   2 MEM[ADDR]:        132 ACC:        116 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:63 output:	int: 116	hex: 0x74	str: 't'
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 160 PC:   16 ADDR: 132 MEM[ADDR]:        116 ACC:        116 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 161 PC:   17 ADDR:  16 MEM[ADDR]: 2164260868 ACC:        116 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 162 PC:   17 ADDR:   4 MEM[ADDR]:         16 ACC:        116 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 163 PC:   17 ADDR:   4 MEM[ADDR]:         16 ACC:         16 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 164 PC:   18 ADDR:  17 MEM[ADDR]:  201326592 ACC:         16 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 165 PC:   10 ADDR:  17 MEM[ADDR]:  201326592 ACC:         16 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 166 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:         16 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 167 PC:   11 ADDR:   3 MEM[ADDR]:         16 ACC:         16 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 168 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         16 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 169 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         16 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:91  input: 'a'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 170 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:         16 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 171 PC:    8 ADDR:   3 MEM[ADDR]:         16 ACC:         16 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: INTERRUPTION  TICK: 172 PC:    8 ADDR:   3 MEM[ADDR]:         16 ACC:         16 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 173 PC:   13 ADDR:   3 MEM[ADDR]:         16 ACC:         16 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 174 PC:   14 ADDR:  13 MEM[ADDR]: 2415919108 ACC:         16 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 175 PC:   14 ADDR:   4 MEM[ADDR]:         16 ACC:         16 C: 0 V: 0	INSTR: save 4
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: ADDRESS_FETCH TICK: 176 PC:   15 ADDR:  14 MEM[ADDR]: 2181038081 ACC:         16 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 177 PC:   15 ADDR:   1 MEM[ADDR]:        128 ACC:         16 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 178 PC:   15 ADDR: 128 MEM[ADDR]:         97 ACC:         16 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 179 PC:   15 ADDR: 128 MEM[ADDR]:         97 ACC:         97 C: 0 V: 0	INSTR: load *[1]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 180 PC:   16 ADDR:  15 MEM[ADDR]: 2432696322 ACC:         97 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 181 PC:   16 ADDR:   2 MEM[ADDR]:        132 ACC:         97 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:63 output:	int: 97	hex: 0x61	str: 'a'
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 182 PC:   16 ADDR: 132 MEM[ADDR]:         97 ACC:         97 C: 0 V: 0	INSTR: save [2]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: OPERAND_FETCH TICK: 183 PC:   17 ADDR:  16 MEM[ADDR]: 2164260868 ACC:         97 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 184 PC:   17 ADDR:   4 MEM[ADDR]:         16 ACC:         97 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: COMMAND_FETCH TICK: 185 PC:   17 ADDR:   4 MEM[ADDR]:         16 ACC:         16 C: 0 V: 0	INSTR: load [4]
+  DEBUG    root:machine.py:309 STATE: INTERRUPTION STEP: EXECUTION     TICK: 186 PC:   18 ADDR:  17 MEM[ADDR]:  201326592 ACC:         16 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 187 PC:    8 ADDR:  17 MEM[ADDR]:  201326592 ACC:         16 C: 0 V: 0	INSTR: iret
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 188 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         16 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 189 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         16 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 190 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         16 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 191 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         15 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 192 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:         15 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 193 PC:   11 ADDR:   3 MEM[ADDR]:         15 ACC:         15 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 194 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         15 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 195 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         15 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 196 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:         15 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 197 PC:    8 ADDR:   3 MEM[ADDR]:         15 ACC:         15 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 198 PC:    8 ADDR:   3 MEM[ADDR]:         15 ACC:         15 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 199 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         15 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 200 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         15 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 201 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         15 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 202 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         14 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 203 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:         14 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 204 PC:   11 ADDR:   3 MEM[ADDR]:         14 ACC:         14 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 205 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         14 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 206 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         14 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 207 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:         14 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 208 PC:    8 ADDR:   3 MEM[ADDR]:         14 ACC:         14 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 209 PC:    8 ADDR:   3 MEM[ADDR]:         14 ACC:         14 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 210 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         14 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 211 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         14 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 212 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         14 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 213 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         13 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 214 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:         13 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 215 PC:   11 ADDR:   3 MEM[ADDR]:         13 ACC:         13 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 216 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         13 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 217 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         13 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 218 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:         13 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 219 PC:    8 ADDR:   3 MEM[ADDR]:         13 ACC:         13 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 220 PC:    8 ADDR:   3 MEM[ADDR]:         13 ACC:         13 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 221 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         13 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 222 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         13 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 223 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         13 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 224 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         12 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 225 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:         12 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 226 PC:   11 ADDR:   3 MEM[ADDR]:         12 ACC:         12 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 227 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         12 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 228 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         12 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 229 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:         12 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 230 PC:    8 ADDR:   3 MEM[ADDR]:         12 ACC:         12 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 231 PC:    8 ADDR:   3 MEM[ADDR]:         12 ACC:         12 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 232 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         12 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 233 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         12 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 234 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         12 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 235 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         11 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 236 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:         11 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 237 PC:   11 ADDR:   3 MEM[ADDR]:         11 ACC:         11 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 238 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         11 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 239 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         11 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 240 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:         11 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 241 PC:    8 ADDR:   3 MEM[ADDR]:         11 ACC:         11 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 242 PC:    8 ADDR:   3 MEM[ADDR]:         11 ACC:         11 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 243 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         11 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 244 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         11 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 245 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         11 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 246 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         10 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 247 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:         10 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 248 PC:   11 ADDR:   3 MEM[ADDR]:         10 ACC:         10 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 249 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         10 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 250 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:         10 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 251 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:         10 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 252 PC:    8 ADDR:   3 MEM[ADDR]:         10 ACC:         10 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 253 PC:    8 ADDR:   3 MEM[ADDR]:         10 ACC:         10 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 254 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         10 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 255 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:         10 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 256 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:         10 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 257 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          9 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 258 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:          9 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 259 PC:   11 ADDR:   3 MEM[ADDR]:          9 ACC:          9 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 260 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          9 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 261 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          9 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 262 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:          9 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 263 PC:    8 ADDR:   3 MEM[ADDR]:          9 ACC:          9 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 264 PC:    8 ADDR:   3 MEM[ADDR]:          9 ACC:          9 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 265 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          9 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 266 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          9 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 267 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          9 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 268 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          8 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 269 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:          8 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 270 PC:   11 ADDR:   3 MEM[ADDR]:          8 ACC:          8 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 271 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          8 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 272 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          8 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 273 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:          8 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 274 PC:    8 ADDR:   3 MEM[ADDR]:          8 ACC:          8 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 275 PC:    8 ADDR:   3 MEM[ADDR]:          8 ACC:          8 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 276 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          8 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 277 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          8 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 278 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          8 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 279 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          7 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 280 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:          7 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 281 PC:   11 ADDR:   3 MEM[ADDR]:          7 ACC:          7 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 282 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          7 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 283 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          7 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 284 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:          7 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 285 PC:    8 ADDR:   3 MEM[ADDR]:          7 ACC:          7 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 286 PC:    8 ADDR:   3 MEM[ADDR]:          7 ACC:          7 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 287 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          7 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 288 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          7 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 289 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          7 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 290 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          6 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 291 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:          6 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 292 PC:   11 ADDR:   3 MEM[ADDR]:          6 ACC:          6 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 293 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          6 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 294 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          6 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 295 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:          6 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 296 PC:    8 ADDR:   3 MEM[ADDR]:          6 ACC:          6 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 297 PC:    8 ADDR:   3 MEM[ADDR]:          6 ACC:          6 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 298 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          6 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 299 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          6 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 300 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          6 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 301 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          5 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 302 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:          5 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 303 PC:   11 ADDR:   3 MEM[ADDR]:          5 ACC:          5 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 304 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          5 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 305 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          5 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 306 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:          5 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 307 PC:    8 ADDR:   3 MEM[ADDR]:          5 ACC:          5 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 308 PC:    8 ADDR:   3 MEM[ADDR]:          5 ACC:          5 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 309 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          5 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 310 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          5 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 311 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          5 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 312 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          4 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 313 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:          4 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 314 PC:   11 ADDR:   3 MEM[ADDR]:          4 ACC:          4 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 315 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          4 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 316 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          4 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 317 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:          4 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 318 PC:    8 ADDR:   3 MEM[ADDR]:          4 ACC:          4 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 319 PC:    8 ADDR:   3 MEM[ADDR]:          4 ACC:          4 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 320 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          4 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 321 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          4 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 322 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          4 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 323 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          3 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 324 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:          3 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 325 PC:   11 ADDR:   3 MEM[ADDR]:          3 ACC:          3 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 326 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          3 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 327 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          3 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 328 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:          3 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 329 PC:    8 ADDR:   3 MEM[ADDR]:          3 ACC:          3 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 330 PC:    8 ADDR:   3 MEM[ADDR]:          3 ACC:          3 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 331 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          3 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 332 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          3 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 333 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          3 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 334 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          2 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 335 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:          2 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 336 PC:   11 ADDR:   3 MEM[ADDR]:          2 ACC:          2 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 337 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          2 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 338 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          2 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 339 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:          2 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 340 PC:    8 ADDR:   3 MEM[ADDR]:          2 ACC:          2 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 341 PC:    8 ADDR:   3 MEM[ADDR]:          2 ACC:          2 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 342 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          2 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 343 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          2 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 344 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          2 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 345 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          1 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 346 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:          1 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 347 PC:   11 ADDR:   3 MEM[ADDR]:          1 ACC:          1 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 348 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          1 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 349 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          1 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 350 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:          1 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 351 PC:    8 ADDR:   3 MEM[ADDR]:          1 ACC:          1 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 352 PC:    8 ADDR:   3 MEM[ADDR]:          1 ACC:          1 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 353 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          1 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 354 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          1 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 355 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          1 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 356 PC:   10 ADDR:   9 MEM[ADDR]: 1073741825 ACC:          0 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 357 PC:   11 ADDR:  10 MEM[ADDR]: 2415919107 ACC:          0 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 358 PC:   11 ADDR:   3 MEM[ADDR]:          0 ACC:          0 C: 0 V: 0	INSTR: save 3
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 359 PC:   12 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          0 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 360 PC:    7 ADDR:  11 MEM[ADDR]: 4026531847 ACC:          0 C: 0 V: 0	INSTR: jump 7
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK: 361 PC:    8 ADDR:   7 MEM[ADDR]: 2164260867 ACC:          0 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 362 PC:    8 ADDR:   3 MEM[ADDR]:          0 ACC:          0 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 363 PC:    8 ADDR:   3 MEM[ADDR]:          0 ACC:          0 C: 0 V: 0	INSTR: load [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 364 PC:    9 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          0 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK: 365 PC:   12 ADDR:   8 MEM[ADDR]: 4043309068 ACC:          0 C: 0 V: 0	INSTR: beqz 12
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK: 366 PC:   13 ADDR:  12 MEM[ADDR]:          0 ACC:          0 C: 0 V: 0	INSTR: halt

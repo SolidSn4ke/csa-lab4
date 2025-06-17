@@ -1,0 +1,165 @@
+in_source: |-
+  .data
+  out_addr:  .word   0x84
+  num1_head: .word   0x6356
+  num1_tail: .word   0x05ab46f5
+  num2_head: .word   0x35dc
+  num2_tail: .word   0x6842ee09
+  res_head:  .word   0
+  res_tail:  .word   0
+
+  macro sum64
+    load    [num1_tail]
+    add     [num2_tail]
+    save    res_tail
+    load    [num1_head]
+    bcns    2(pc)
+    add     1
+    add     [num2_head]
+    save    res_head
+  endm
+
+  macro sub64
+    load    [num1_tail]
+    sub     [num2_tail]
+    save    res_tail
+    load    [num1_head]
+    bcns    2(pc)
+    sub     1
+    sub     [num2_head]
+    save    res_head
+  endm
+
+  macro print_res64
+    load    [res_head]
+    save    [out_addr]
+    load    [res_tail]
+    save    [out_addr]
+  endm
+
+      .code
+  _start:
+    sum64
+    print_res64
+    sub64
+    print_res64
+    halt
+
+in_config: |-
+  machine:
+    tick_limit: 10000
+    memory_mapped_io:
+      in_addr: 0x80
+      out_addr: 0x84
+    output_type: hex
+
+in_stdin: |
+
+out_code: !!binary |
+  QUFBQUI0RUFBQUl4QUFBRWtBQUFCb0VBQUFIMkFBQU5NQUFBQVRFQUFBT1FBQUFGZ1FBQUJaRUFB
+  QUNCQUFBR2tRQUFBSUVBQUFKQkFBQUVrQUFBQm9FQUFBSDJBQUFaUUFBQUFVRUFBQU9RQUFBRmdR
+  QUFCWkVBQUFDQkFBQUdrUUFBQUFBQUFBQT0=
+
+out_data: !!binary |
+  QUFBQUFBQUFBSVFBQUdOV0JhdEc5UUFBTmR4b1F1NEpBQUFBQUFBQUFBQT0=
+
+out_code_hex: |-
+  7 - 0x81000002 - load [2]
+  8 - 0x31000004 - add [4]
+  9 - 0x90000006 - save 6
+  10 - 0x81000001 - load [1]
+  11 - 0xf600000d - bcns 13
+  12 - 0x30000001 - add 1
+  13 - 0x31000003 - add [3]
+  14 - 0x90000005 - save 5
+  15 - 0x81000005 - load [5]
+  16 - 0x91000000 - save [0]
+  17 - 0x81000006 - load [6]
+  18 - 0x91000000 - save [0]
+  19 - 0x81000002 - load [2]
+  20 - 0x41000004 - sub [4]
+  21 - 0x90000006 - save 6
+  22 - 0x81000001 - load [1]
+  23 - 0xf6000019 - bcns 25
+  24 - 0x40000001 - sub 1
+  25 - 0x41000003 - sub [3]
+  26 - 0x90000005 - save 5
+  27 - 0x81000005 - load [5]
+  28 - 0x91000000 - save [0]
+  29 - 0x81000006 - load [6]
+  30 - 0x91000000 - save [0]
+  31 - 0x0 - halt
+
+out_stdout: |
+  ['0x9932', '0x6dee34fe', '0x2d79', '0x9d6858ec']
+  ticks: 64
+
+out_log: |
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:   0 PC:    7 ADDR:   0 MEM[ADDR]:        132 ACC:          0 C: 0 V: 0	INSTR: None
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:   1 PC:    8 ADDR:   7 MEM[ADDR]: 2164260866 ACC:          0 C: 0 V: 0	INSTR: load [2]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:   2 PC:    8 ADDR:   2 MEM[ADDR]:   95110901 ACC:          0 C: 0 V: 0	INSTR: load [2]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:   3 PC:    8 ADDR:   2 MEM[ADDR]:   95110901 ACC:   95110901 C: 0 V: 0	INSTR: load [2]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:   4 PC:    9 ADDR:   8 MEM[ADDR]:  822083588 ACC:   95110901 C: 0 V: 0	INSTR: add [4]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:   5 PC:    9 ADDR:   4 MEM[ADDR]: 1749216777 ACC:   95110901 C: 0 V: 0	INSTR: add [4]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:   6 PC:    9 ADDR:   4 MEM[ADDR]: 1749216777 ACC: 1844327678 C: 0 V: 0	INSTR: add [4]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:   7 PC:   10 ADDR:   9 MEM[ADDR]: 2415919110 ACC: 1844327678 C: 0 V: 0	INSTR: save 6
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:   8 PC:   10 ADDR:   6 MEM[ADDR]: 1844327678 ACC: 1844327678 C: 0 V: 0	INSTR: save 6
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:   9 PC:   11 ADDR:  10 MEM[ADDR]: 2164260865 ACC: 1844327678 C: 0 V: 0	INSTR: load [1]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  10 PC:   11 ADDR:   1 MEM[ADDR]:      25430 ACC: 1844327678 C: 0 V: 0	INSTR: load [1]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  11 PC:   11 ADDR:   1 MEM[ADDR]:      25430 ACC:      25430 C: 0 V: 0	INSTR: load [1]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  12 PC:   12 ADDR:  11 MEM[ADDR]: 4127195149 ACC:      25430 C: 0 V: 0	INSTR: bcns 13
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  13 PC:   13 ADDR:  11 MEM[ADDR]: 4127195149 ACC:      25430 C: 0 V: 0	INSTR: bcns 13
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  14 PC:   14 ADDR:  13 MEM[ADDR]:  822083587 ACC:      25430 C: 0 V: 0	INSTR: add [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  15 PC:   14 ADDR:   3 MEM[ADDR]:      13788 ACC:      25430 C: 0 V: 0	INSTR: add [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  16 PC:   14 ADDR:   3 MEM[ADDR]:      13788 ACC:      39218 C: 0 V: 0	INSTR: add [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  17 PC:   15 ADDR:  14 MEM[ADDR]: 2415919109 ACC:      39218 C: 0 V: 0	INSTR: save 5
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  18 PC:   15 ADDR:   5 MEM[ADDR]:      39218 ACC:      39218 C: 0 V: 0	INSTR: save 5
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  19 PC:   16 ADDR:  15 MEM[ADDR]: 2164260869 ACC:      39218 C: 0 V: 0	INSTR: load [5]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  20 PC:   16 ADDR:   5 MEM[ADDR]:      39218 ACC:      39218 C: 0 V: 0	INSTR: load [5]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  21 PC:   16 ADDR:   5 MEM[ADDR]:      39218 ACC:      39218 C: 0 V: 0	INSTR: load [5]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  22 PC:   17 ADDR:  16 MEM[ADDR]: 2432696320 ACC:      39218 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  23 PC:   17 ADDR:   0 MEM[ADDR]:        132 ACC:      39218 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:63 output:	int: 39218	hex: 0x9932	str: '?'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  24 PC:   17 ADDR: 132 MEM[ADDR]:      39218 ACC:      39218 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  25 PC:   18 ADDR:  17 MEM[ADDR]: 2164260870 ACC:      39218 C: 0 V: 0	INSTR: load [6]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  26 PC:   18 ADDR:   6 MEM[ADDR]: 1844327678 ACC:      39218 C: 0 V: 0	INSTR: load [6]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  27 PC:   18 ADDR:   6 MEM[ADDR]: 1844327678 ACC: 1844327678 C: 0 V: 0	INSTR: load [6]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  28 PC:   19 ADDR:  18 MEM[ADDR]: 2432696320 ACC: 1844327678 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  29 PC:   19 ADDR:   0 MEM[ADDR]:        132 ACC: 1844327678 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:63 output:	int: 1844327678	hex: 0x6dee34fe	str: '?'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  30 PC:   19 ADDR: 132 MEM[ADDR]: 1844327678 ACC: 1844327678 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  31 PC:   20 ADDR:  19 MEM[ADDR]: 2164260866 ACC: 1844327678 C: 0 V: 0	INSTR: load [2]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  32 PC:   20 ADDR:   2 MEM[ADDR]:   95110901 ACC: 1844327678 C: 0 V: 0	INSTR: load [2]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  33 PC:   20 ADDR:   2 MEM[ADDR]:   95110901 ACC:   95110901 C: 0 V: 0	INSTR: load [2]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  34 PC:   21 ADDR:  20 MEM[ADDR]: 1090519044 ACC:   95110901 C: 0 V: 0	INSTR: sub [4]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  35 PC:   21 ADDR:   4 MEM[ADDR]: 1749216777 ACC:   95110901 C: 0 V: 0	INSTR: sub [4]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  36 PC:   21 ADDR:   4 MEM[ADDR]: 1749216777 ACC: 2640861420 C: 1 V: 0	INSTR: sub [4]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  37 PC:   22 ADDR:  21 MEM[ADDR]: 2415919110 ACC: 2640861420 C: 1 V: 0	INSTR: save 6
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  38 PC:   22 ADDR:   6 MEM[ADDR]: 2640861420 ACC: 2640861420 C: 1 V: 0	INSTR: save 6
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  39 PC:   23 ADDR:  22 MEM[ADDR]: 2164260865 ACC: 2640861420 C: 1 V: 0	INSTR: load [1]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  40 PC:   23 ADDR:   1 MEM[ADDR]:      25430 ACC: 2640861420 C: 1 V: 0	INSTR: load [1]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  41 PC:   23 ADDR:   1 MEM[ADDR]:      25430 ACC:      25430 C: 1 V: 0	INSTR: load [1]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  42 PC:   24 ADDR:  23 MEM[ADDR]: 4127195161 ACC:      25430 C: 1 V: 0	INSTR: bcns 25
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  43 PC:   24 ADDR:  23 MEM[ADDR]: 4127195161 ACC:      25430 C: 1 V: 0	INSTR: bcns 25
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  44 PC:   25 ADDR:  24 MEM[ADDR]: 1073741825 ACC:      25430 C: 1 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  45 PC:   25 ADDR:  24 MEM[ADDR]: 1073741825 ACC:      25429 C: 0 V: 0	INSTR: sub 1
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  46 PC:   26 ADDR:  25 MEM[ADDR]: 1090519043 ACC:      25429 C: 0 V: 0	INSTR: sub [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  47 PC:   26 ADDR:   3 MEM[ADDR]:      13788 ACC:      25429 C: 0 V: 0	INSTR: sub [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  48 PC:   26 ADDR:   3 MEM[ADDR]:      13788 ACC:      11641 C: 0 V: 0	INSTR: sub [3]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  49 PC:   27 ADDR:  26 MEM[ADDR]: 2415919109 ACC:      11641 C: 0 V: 0	INSTR: save 5
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  50 PC:   27 ADDR:   5 MEM[ADDR]:      11641 ACC:      11641 C: 0 V: 0	INSTR: save 5
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  51 PC:   28 ADDR:  27 MEM[ADDR]: 2164260869 ACC:      11641 C: 0 V: 0	INSTR: load [5]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  52 PC:   28 ADDR:   5 MEM[ADDR]:      11641 ACC:      11641 C: 0 V: 0	INSTR: load [5]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  53 PC:   28 ADDR:   5 MEM[ADDR]:      11641 ACC:      11641 C: 0 V: 0	INSTR: load [5]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  54 PC:   29 ADDR:  28 MEM[ADDR]: 2432696320 ACC:      11641 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  55 PC:   29 ADDR:   0 MEM[ADDR]:        132 ACC:      11641 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:63 output:	int: 11641	hex: 0x2d79	str: '?'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  56 PC:   29 ADDR: 132 MEM[ADDR]:      11641 ACC:      11641 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  57 PC:   30 ADDR:  29 MEM[ADDR]: 2164260870 ACC:      11641 C: 0 V: 0	INSTR: load [6]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  58 PC:   30 ADDR:   6 MEM[ADDR]: 2640861420 ACC:      11641 C: 0 V: 0	INSTR: load [6]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  59 PC:   30 ADDR:   6 MEM[ADDR]: 2640861420 ACC: 2640861420 C: 0 V: 0	INSTR: load [6]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: OPERAND_FETCH TICK:  60 PC:   31 ADDR:  30 MEM[ADDR]: 2432696320 ACC: 2640861420 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  61 PC:   31 ADDR:   0 MEM[ADDR]:        132 ACC: 2640861420 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:63 output:	int: -1654105876	hex: 0x9d6858ec	str: '?'
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: COMMAND_FETCH TICK:  62 PC:   31 ADDR: 132 MEM[ADDR]: 2640861420 ACC: 2640861420 C: 0 V: 0	INSTR: save [0]
+  DEBUG    root:machine.py:309 STATE: RUNNING      STEP: EXECUTION     TICK:  63 PC:   32 ADDR:  31 MEM[ADDR]:          0 ACC: 2640861420 C: 0 V: 0	INSTR: halt

@@ -1,0 +1,9 @@
+venv/Lib
+.pytest_cache
+.idea
+code.bin
+code.hex
+data.bin
+input.txt
+test.asm
+machine_config.yaml

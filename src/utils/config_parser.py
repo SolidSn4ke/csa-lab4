@@ -16,16 +16,16 @@ class MachineConfig:
 
     @classmethod
     def from_yaml(cls, file_path):
-        with open(file_path, 'r') as f:
-            config_data = yaml.safe_load(f)['machine']
+        with open(file_path, "r") as f:
+            config_data = yaml.safe_load(f)["machine"]
 
         mmio = MMIOConfig(
-            in_addr=config_data['memory_mapped_io']['in_addr'],
-            out_addr=config_data['memory_mapped_io']['out_addr']
+            in_addr=config_data["memory_mapped_io"]["in_addr"],
+            out_addr=config_data["memory_mapped_io"]["out_addr"],
         )
 
         return cls(
             mmio=mmio,
-            tick_limit=config_data['tick_limit'],
-            output_type=config_data['output_type']
+            tick_limit=config_data["tick_limit"],
+            output_type=config_data["output_type"],
         )

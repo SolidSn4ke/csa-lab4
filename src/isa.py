@@ -81,7 +81,7 @@ opcode_to_bin = {
     Opcode.MOD: 0x7,
     Opcode.LOAD: 0x8,
     Opcode.SAVE: 0x9,
-    Opcode.SETVEC: 0xa
+    Opcode.SETVEC: 0xA,
 }
 
 bin_to_opcode = {
@@ -95,8 +95,8 @@ bin_to_opcode = {
     0x7: Opcode.MOD,
     0x8: Opcode.LOAD,
     0x9: Opcode.SAVE,
-    0xa: Opcode.SETVEC,
-    0xF: Opcode.BRANCH
+    0xA: Opcode.SETVEC,
+    0xF: Opcode.BRANCH,
 }
 
 branch_to_bin = {
@@ -108,7 +108,7 @@ branch_to_bin = {
     BranchType.BCS: 0x5,
     BranchType.BCNS: 0x6,
     BranchType.BVS: 0x7,
-    BranchType.BVNS: 0x8
+    BranchType.BVNS: 0x8,
 }
 
 bin_to_branch = {
@@ -134,11 +134,11 @@ no_operand_to_bin = {
     NoArgType.SHL: 0x7,
     NoArgType.SHR: 0x8,
     NoArgType.ASR: 0x9,
-    NoArgType.CSHL: 0xa,
-    NoArgType.CSHR: 0xb,
-    NoArgType.IRET: 0xc,
-    NoArgType.EI: 0xd,
-    NoArgType.DI: 0xe
+    NoArgType.CSHL: 0xA,
+    NoArgType.CSHR: 0xB,
+    NoArgType.IRET: 0xC,
+    NoArgType.EI: 0xD,
+    NoArgType.DI: 0xE,
 }
 
 bin_to_no_operand = {
@@ -152,11 +152,11 @@ bin_to_no_operand = {
     0x7: NoArgType.SHL,
     0x8: NoArgType.SHR,
     0x9: NoArgType.ASR,
-    0xa: NoArgType.CSHL,
-    0xb: NoArgType.CSHR,
-    0xc: NoArgType.IRET,
-    0xd: NoArgType.EI,
-    0xe: NoArgType.DI
+    0xA: NoArgType.CSHL,
+    0xB: NoArgType.CSHR,
+    0xC: NoArgType.IRET,
+    0xD: NoArgType.EI,
+    0xE: NoArgType.DI,
 }
 
 
@@ -167,7 +167,8 @@ def to_binary(code):
     data_byte_array.extend(code["data_org"].to_bytes(4, byteorder="big"))
 
     for addr, instruction in code.items():
-        if not str.isdigit(str(addr)): continue
+        if not str.isdigit(str(addr)):
+            continue
         command = instruction.split()[0]
         operand = instruction.split()[1] if len(instruction.split()) > 1 else None
 
@@ -177,16 +178,16 @@ def to_binary(code):
             if re.fullmatch(r"\[.*]", operand):
                 addressing_type = 0b0001
                 if operand.replace("[", "").startswith("0x"):
-                    operand = int(operand[3:len(operand) - 1], 16)
+                    operand = int(operand[3 : len(operand) - 1], 16)
                 else:
-                    operand = int(operand[1:len(operand) - 1])
+                    operand = int(operand[1 : len(operand) - 1])
 
             elif re.fullmatch(r"\*\[.*]", operand):
                 addressing_type = 0b0010
                 if operand.replace("*[", "").startswith("0x"):
-                    operand = int(operand[4:len(operand) - 1], 16)
+                    operand = int(operand[4 : len(operand) - 1], 16)
                 else:
-                    operand = int(operand[2:len(operand) - 1])
+                    operand = int(operand[2 : len(operand) - 1])
 
             else:
                 addressing_type = 0b0000
@@ -195,34 +196,42 @@ def to_binary(code):
                 else:
                     operand = int(operand)
 
-            word = (opcode_to_bin[opcode] << 28) | (addressing_type << 24) | (operand & 0xFFFFFF)
+            word = (
+                (opcode_to_bin[opcode] << 28)
+                | (addressing_type << 24)
+                | (operand & 0xFFFFFF)
+            )
 
         elif command in [b.value for b in BranchType]:
-            opcode = 0xf
+            opcode = 0xF
             branch_type = next(bt for bt in BranchType if bt.value == command)
 
             if re.fullmatch(r"(-?\d|0x[\da-f]{1,6})\(pc\)", operand):
                 if operand.startswith("0x"):
-                    operand = addr + int(operand[2:len(operand) - 4], 16)
+                    operand = addr + int(operand[2 : len(operand) - 4], 16)
                 else:
-                    operand = addr + int(operand[:len(operand) - 4])
-            word = (opcode << 28) | (branch_to_bin[branch_type] << 24) | (int(operand) & 0xFFFFFF)
+                    operand = addr + int(operand[: len(operand) - 4])
+            word = (
+                (opcode << 28)
+                | (branch_to_bin[branch_type] << 24)
+                | (int(operand) & 0xFFFFFF)
+            )
 
         elif command in [n.value for n in NoArgType]:
             opcode = 0x0
             no_operand_type = next(n for n in NoArgType if n.value == command)
             word = (opcode << 28) | (no_operand_to_bin[no_operand_type] << 24)
 
-        elif command.startswith('word'):
+        elif command.startswith("word"):
             if command[4:].startswith("0x"):
                 word = int(command[6:], 16) & 0xFFFFFFFF
             else:
                 word = int(command[4:]) & 0xFFFFFFFF
 
-        if command.startswith('str'):
-            for char in instruction[3:] + '\0':
-                data_byte_array.extend(ord(char).to_bytes(4, byteorder='big'))
-        elif command.startswith('word'):
+        if command.startswith("str"):
+            for char in instruction[3:] + "\0":
+                data_byte_array.extend(ord(char).to_bytes(4, byteorder="big"))
+        elif command.startswith("word"):
             data_byte_array.extend(word.to_bytes(4, byteorder="big"))
         else:
             code_byte_array.extend(word.to_bytes(4, byteorder="big"))
@@ -234,7 +243,9 @@ def to_hex(code):
     binary_code, _ = to_binary(code)
     mem_addr = int.from_bytes(binary_code[0:4], byteorder="big") & 0xFFFFFFFF
     for i in range(4, len(binary_code), 4):
-        instruction = int.from_bytes(binary_code[i:i + 4], byteorder='big') & 0xFFFFFFFF
+        instruction = (
+            int.from_bytes(binary_code[i : i + 4], byteorder="big") & 0xFFFFFFFF
+        )
         opcode, command_type, arg = instruction_from_bin(instruction)
         result += f"{mem_addr} - {hex(instruction)} - {instruction_to_str(opcode, command_type, arg)}\n"
         mem_addr += 1
@@ -273,12 +284,16 @@ def map_bytes_to_memory(mem, binary_code, binary_data):
     mem_addr = int.from_bytes(binary_data[0:4], byteorder="big") & 0xFFFFFFFF
 
     for i in range(4, len(binary_data), 4):
-        mem[mem_addr] = int.from_bytes(binary_data[i:i + 4], byteorder="big") & 0xFFFFFFFF
+        mem[mem_addr] = (
+            int.from_bytes(binary_data[i : i + 4], byteorder="big") & 0xFFFFFFFF
+        )
         mem_addr += 1
 
     mem_addr = int.from_bytes(binary_code[0:4], byteorder="big") & 0xFFFFFFFF
     for i in range(4, len(binary_code), 4):
-        mem[mem_addr] = int.from_bytes(binary_code[i:i + 4], byteorder="big") & 0xFFFFFFFF
+        mem[mem_addr] = (
+            int.from_bytes(binary_code[i : i + 4], byteorder="big") & 0xFFFFFFFF
+        )
         mem_addr += 1
     return mem
 
@@ -286,5 +301,5 @@ def map_bytes_to_memory(mem, binary_code, binary_data):
 def hex_to_signed_int(hex_str):
     num = int(hex_str, 16)
     if num >= (1 << 31):
-        num -= (1 << 32)
+        num -= 1 << 32
     return num

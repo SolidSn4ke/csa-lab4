@@ -36,7 +36,7 @@ def test_translator_and_machine(golden, caplog):
 
         with open(code_target, "rb") as file:
             code = file.read()
-        with open(data_target, 'rb') as file:
+        with open(data_target, "rb") as file:
             data = file.read()
         with open(code_target_hex, encoding="utf-8") as file:
             code_hex = file.read()

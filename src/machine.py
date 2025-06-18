@@ -38,9 +38,9 @@ class DataPath:
     mem_size = 16777216
     memory = None
     input_buffer = None
-    output_buffer_int = []
-    output_buffer_hex = []
-    output_buffer_str = []
+    output_buffer_int = None
+    output_buffer_hex = None
+    output_buffer_str = None
     input_cell = None
     output_cell = None
 
@@ -49,6 +49,9 @@ class DataPath:
         self.output_cell = output_cell
         self.memory = init_memory
         self.input_buffer = input_buffer
+        self.output_buffer_int = []
+        self.output_buffer_hex = []
+        self.output_buffer_str = []
 
     def signal_latch_acc(self, sel):
         if sel["opcode"] == Opcode.NO_ARG:

@@ -45,4 +45,4 @@ jobs:
           pip install pytest-golden pyyaml
 
       - name: Run golden tests
-        run: pytest -v --update-goldens
+        run: pytest -v

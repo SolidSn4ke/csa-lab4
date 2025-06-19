@@ -164,6 +164,8 @@ class DataPath:
             self.signal_latch_addr({"addr_type": AddrType.IMM, "arg": sel["arg"]})
             self.signal_wr()
 
+        self.acc = self.acc & 0xFFFFFFFF
+
     def signal_wr(self):
         self.memory[self.ar] = self.acc
         if self.ar == self.output_cell:
